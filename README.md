@@ -1,5 +1,11 @@
 # Geosoft-2020-Projektaufgabe
 
+DONE:
+
+Nutzer/Arzt kann einen Account erstellen: Fehlermeldungen, falls username bereits vergeben oder passwort nicht korrekt wiederholt
+Nutzer/Arzt login: Fehlermeldungen, falls user nicht existiert oder passwort falsch
+
+
 TO-DO:
 
 Ein Nutzer kann eine aktuelle Abfahrt an einer Haltestelle vor Ort auswählen. Für diese wird dann im Server markiert, dass sie vom Nutzer genommen wurde.
