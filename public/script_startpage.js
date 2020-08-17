@@ -53,6 +53,8 @@ function createUser (request){
   else{
     var user = '{"username":' + username + ', "password":' + password + '}';
     sendToServer(user, "http://localhost:3000/userCreated");
+    //redirect
+    window.location.replace("http://localhost:3000/user");
   }
 }
 
@@ -81,6 +83,8 @@ function createDoctor (request){
   else{
     var doctor = '{"username":' + username + ', "password":' + password + '}';
     sendToServer(doctor, "http://localhost:3000/doctorCreated");
+    //redirect
+    window.location.replace("http://localhost:3000/doctor");
   }
 }
 
