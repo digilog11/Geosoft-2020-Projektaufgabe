@@ -2,8 +2,13 @@
 
 DONE:
 
+Nutzer sieht Karte mit seiner Position und Haltestellen in der Nähe
+
 Nutzer/Arzt kann einen Account erstellen: Fehlermeldungen, falls username bereits vergeben oder passwort nicht korrekt wiederholt
+
 Nutzer/Arzt login: Fehlermeldungen, falls user nicht existiert oder passwort falsch
+
+Aber: bisher keine richtige Login funktion, nur links
 
 
 TO-DO:
