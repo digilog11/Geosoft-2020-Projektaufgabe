@@ -1,58 +1,64 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <title>Geosoft 2020 Projektaufgabe</title>
   <meta charset="utf-8"/>
 </head>
 <body>
 
-  <h1> EINLOGGEN </h1>
-  <h2> Einloggen für Nutzer </h2>
-  <label for="nutzer_nutzername">Nutzername</label>
-  <input type="text" id="nutzer_nutzername"></input>
+  <h1> SIGN IN </h1>
+  <h2> Sign in for users </h2>
+  <label for="user_username">Username</label>
+  <input type="text" id="user_username"></input>
   <br>
-  <label for="nutzer_passwort">Passwort</label>
-  <input type="password" id="nutzer_passwort"></input>
+  <label for="user_password">Password</label>
+  <input type="password" id="user_password"></input>
   <br>
-  <button> Einloggen </button>
+  <p id="user_error"></p>
+  <button onclick="requestJSON('http://localhost:3000/users', loginUser)"> Log in </button>
 
-  <h2> Einloggen für Ärzte </h2>
-  <label for="arzt_nutzername">Nutzername</label>
-  <input type="text" id="arzt_nutzername"></input>
+  <h2> Sign in for doctors </h2>
+  <label for="doctor_username">Username</label>
+  <input type="text" id="doctor_username"></input>
   <br>
-  <label for="arzt_passwort">Passowort</label>
-  <input type="password" id="arzt_passwort"></input>
+  <label for="doctor_password">Password</label>
+  <input type="password" id="doctor_password"></input>
   <br>
-  <button> Einloggen </button>
+  <p id="doctor_error"></p>
+  <button onclick="requestJSON('http://localhost:3000/doctors', loginDoctor)"> Log in </button>
 
   <br>
   <br>
 
-  <h1> REGISTRIEREN </h1>
-  <h2> Registrieren für Nutzer </h2>
-  <label for="new_nutzer_nutzername">Nutzername</label>
-  <input type="text" id="new_nutzer_nutzername"></input>
+  <h1> SIGN UP </h1>
+  <h2> Sign up for users </h2>
+  <label for="new_user_username">Username</label>
+  <input type="text" id="new_user_username"></input>
   <br>
-  <label for="new_nutzer_passwort">Passwort</label>
-  <input type="password" id="new_nutzer_passwort"></input>
+  <label for="new_user_password">Password</label>
+  <input type="password" id="new_user_password"></input>
   <br>
-  <label for="new_nutzer_passwort_wiederholung">Passwort Wiederholung</label>
-  <input type="password" id="new_nutzer_passwort_wiederholung"></input>
+  <label for="new_user_password_rep">Password Repetition</label>
+  <input type="password" id="new_user_password_rep"></input>
   <br>
-  <button> Neuen Account anlegen </button>
+  <p id="new_user_error"></p>
+  <button onclick="requestJSON('http://localhost:3000/users', createUser)"> Create New Account </button>
 
-  <h2> Registrieren für Ärzte </h2>
-  <label for="new_arzt_nutzername">Nutzername</label>
-  <input type="text" id="new_arzt_nutzername"></input>
+  <h2> Sign up for doctors </h2>
+  <label for="new_doctor_username">Username</label>
+  <input type="text" id="new_doctor_username"></input>
   <br>
-  <label for="new_arzt_passwort">Passowort</label>
-  <input type="password" id="new_arzt_passwort"></input>
+  <label for="new_doctor_password">Password</label>
+  <input type="password" id="new_doctor_password"></input>
   <br>
-  <label for="new_arzt_passwort_wiederholung">Passwort Wiederholung</label>
-  <input type="password" id="new_arzt_passwort_wiederholung"></input>
+  <label for="new_doctor_password_rep">Password Repetition</label>
+  <input type="password" id="new_doctor_password_rep"></input>
   <br>
-  <button> Neuen Account anlegen </button>
+  <p id="new_doctor_error"></p>
+  <button onclick="requestJSON('http://localhost:3000/doctors', createDoctor)"> Create New Account </button>
 
 
 </body>
 </html>
+
+<script src="/public/script_startpage.js"></script>
