@@ -2,7 +2,18 @@
 
 const express = require("express");
 const mongodb = require("mongodb");
+const http = require("http");
 const port = 3000;
+
+//////////////////
+// API
+// used is the MTA Bus Time API
+// for documentation go to: http://bustime.mta.info/wiki/Developers/OneBusAwayRESTfulAPI
+// to request a key got to: http://bustime.mta.info/wiki/Developers/Index
+//////////////////
+
+//// API KEY ////
+const key = "YOUR_KEY";
 
 const app = express();
 
@@ -71,8 +82,43 @@ connectMongoDB();
      });
   }
 
+  /**
+   * sends an http-get-request to the API for stops near to position
+   * and sends it to /nearbyStops/* where it can be used client side
+   * @param {object} position - position {lat, lon}
+   */
+  function requestStopsNearby (position){
+    var lat = position.latitude;
+    var lon = position.longitude;
+    var url = "http://bustime.mta.info/api/where/stops-for-location.json?lat=" + lat + "&lon=" + lon + "&radius=1000&key=" + key + "";
+    console.log(url);
+    // start code @ Steve Griffith
+    http.get(url, resp =>{
+      let data = "";
+
+      resp.on("data", chunk =>{
+        data += chunk;
+      });
+
+      resp.on("end", () =>{
+        let response = JSON.parse(data).data;
+        console.log(response);
+        app.get("/nearbyStops/lat=" + lat + "&lon=" + lon, (req,res) => {
+          res.json(response);
+        });
+      });
+    })
+    .on("error", err =>{
+      console.log("Error: " + err.message);
+    });
+    // end code @ Steve Griffith
+  }
+
 // Make all Files stored in Folder "public" accessible over localhost:3000/public
 app.use("/public", express.static(__dirname + "/public"));
+
+// Make leaflet library available over localhost:3000/leaflet
+app.use("/leaflet", express.static(__dirname + "/node_modules/leaflet/dist"));
 
 // Send startpage.html on request to "/"
 app.get("/", (req,res) => {
@@ -89,19 +135,24 @@ app.get("/doctor", (req,res) => {
   res.sendFile(__dirname + "/doctor.html")
 });
 
-
-// takes request body from userCreated-Post-Request and gives it on to function
-// insertUserMongo()
+//takes request body from userCreated-Post-Request and gives it on to function
+//insertUserMongo()
 app.post("/userCreated", (req,res) => {
   var user = req.body;
   insertUserMongo(user);
 })
 
-// takes request body from doctorCreated-Post-Request and gives it on to function
-// insertDoctorMongo()
+//takes request body from doctorCreated-Post-Request and gives it on to function
+//insertDoctorMongo()
 app.post("/doctorCreated", (req,res) => {
   var user = req.body;
   insertDoctorMongo(user);
+})
+
+//gives user position on to function requestStopsNearby
+app.post("/userPosition", (req,res) => {
+  var position = req.body;
+  requestStopsNearby(position);
 })
 
 // Returns all documents stored in collection users
