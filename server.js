@@ -114,6 +114,38 @@ connectMongoDB();
     // end code @ Steve Griffith
   }
 
+
+  /**
+   * sends an http-get-request to the API for departures at stop
+   * and sends it to /monitoringRef=* where it can be used client side
+   * @param {object} stopCode - {stopCode}
+   */
+  function requestDepartures (stopCode){
+    var monitoringRef = stopCode.stopCode;
+    var url = "http://bustime.mta.info/api/siri/stop-monitoring.json?key=" + key + "&OperatorRef=MTA&MonitoringRef=" + monitoringRef;
+    console.log(url);
+    // start code @ Steve Griffith
+    http.get(url, resp =>{
+      let data = "";
+
+      resp.on("data", chunk =>{
+        data += chunk;
+      });
+
+      resp.on("end", () =>{
+        let response = JSON.parse(data).Siri;
+        console.log(response);
+        app.get("/monitoringRef=" + monitoringRef, (req,res) => {
+          res.json(response);
+        });
+      });
+    })
+    .on("error", err =>{
+      console.log("Error: " + err.message);
+    });
+    // end code @ Steve Griffith
+  }
+
 // Make all Files stored in Folder "public" accessible over localhost:3000/public
 app.use("/public", express.static(__dirname + "/public"));
 
@@ -153,6 +185,13 @@ app.post("/doctorCreated", (req,res) => {
 app.post("/userPosition", (req,res) => {
   var position = req.body;
   requestStopsNearby(position);
+})
+
+//gives stopCode on to function requestDepartures
+app.post("/stopCode", (req,res) => {
+  var stopCode = req.body;
+  console.log(stopCode);
+  requestDepartures(stopCode);
 })
 
 // Returns all documents stored in collection users
