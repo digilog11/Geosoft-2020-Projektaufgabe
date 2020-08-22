@@ -9,6 +9,7 @@ const port = 3000;
 // API
 // used is the MTA Bus Time API
 // for documentation go to: http://bustime.mta.info/wiki/Developers/OneBusAwayRESTfulAPI
+// for documentation on SIRI API: https://bustime.mta.info/wiki/Developers/SIRIStopMonitoring
 // to request a key got to: http://bustime.mta.info/wiki/Developers/Index
 //////////////////
 
@@ -90,7 +91,7 @@ connectMongoDB();
   function requestStopsNearby (position){
     var lat = position.latitude;
     var lon = position.longitude;
-    var url = "http://bustime.mta.info/api/where/stops-for-location.json?lat=" + lat + "&lon=" + lon + "&radius=1000&key=" + key + "";
+    var url = "http://bustime.mta.info/api/where/stops-for-location.json?lat=" + lat + "&lon=" + lon + "&radius=200&key=" + key + "";
     console.log(url);
     // start code @ Steve Griffith
     http.get(url, resp =>{
