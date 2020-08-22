@@ -2,13 +2,17 @@
 
 DONE:
 
-Nutzer sieht Karte mit seiner Position und Haltestellen in der Nähe
+Nutzer sieht Karte mit seiner Position und Haltestellen in der Nähe, er kann seine Position per Mausklick auf Karte wählen oder automatisch per Geolocation
+
+Wenn Nutzer auf Haltestellen-Marker klickt werden die nächsten Abfahrten an dieser Haltestelle als Text angezeigt, Problem: Timeout manchmal länger als vorgeschrieben (inherent in funktion, passiert, wenn Browser viel zu tun), falls Nutzer auf eine Haltestelle klickt und danach wieder auf dieselbe aktualisiert der Text nicht
 
 Nutzer/Arzt kann einen Account erstellen: Fehlermeldungen, falls username bereits vergeben oder passwort nicht korrekt wiederholt
 
 Nutzer/Arzt login: Fehlermeldungen, falls user nicht existiert oder passwort falsch
 
 Aber: bisher keine richtige Login funktion, nur links
+
+Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
 
 
 TO-DO:
