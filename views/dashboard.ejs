@@ -1,0 +1,41 @@
+<header class="container-fluid bg-dark">
+  <nav class="navbar navbar-expand-md navbar-dark">
+    <button type="button" class="navbar-toggler hidden-sm-up" data-toggle="collapse" data-target="#navCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navCollapse">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link " href="http://localhost:3000/dashboard">Register Busrides</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link " href="http://localhost:3000/dashboard2">View Busrides</a>
+        </li>
+        <li class="nav-item dropdown ml-auto">
+          <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown"
+          aria-haspopup="true" aria-expanded="false"> <%= user.name %> </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="/users/logout">Log out</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main role="main" class="container-fluid">
+  <div class="row mt-5 mb-5">
+    <div class="col-xl-8 m-auto text-center">
+      <p class="mb-0"> Click on the map to see if there are MTA busstops within 200 m of that position.</p>
+      <p> If yes, click on a marker to see the current departures from that busstop. </p>
+      <div class="container-fluid" id="mapError-Container">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6" id="mapContainer"></div>
+    <div class="col-md-6" id="stopInfo">
+      <%- include ("./partials/messages"); %>
+    </div>
+  </div>
+</main>
