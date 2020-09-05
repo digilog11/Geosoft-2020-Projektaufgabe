@@ -30,6 +30,67 @@ function requestJSON (url, cFunction, object) {
 }
 
 /**
+ * converts from unix time to human-readable time and between timezones
+ * @param {number} unix - unix time in milliseconds
+ * @return {string} - time e.g. "10:04"
+ */
+function toReadableTime (unix) {
+  // unix considered to be UTC
+  var time = new Date (unix);
+  // Münster = UTC+2, NYC=UTC-4, so from Münster to NYC -6 hours
+  // not an ideal solution, but works (at least until next time change)
+  var hours = time.getHours();
+  var minutes = time.getMinutes();
+  if (hours == 5){
+    if (minutes < 10){
+      return "" + 23 + ":0" + minutes;
+    }else{
+      return "" + 23 + ":" + minutes;
+    }
+  }
+  if (hours == 4){
+    if (minutes < 10){
+      return "" + 22 + ":0" + minutes;
+    }else{
+      return "" + 22 + ":" + minutes;
+    }
+  }
+  if (hours == 3){
+    if (minutes < 10){
+      return "" + 21 + ":0" + minutes;
+    }else{
+      return "" + 21 + ":" + minutes;
+    }
+  }
+  if (hours == 2){
+    if (minutes < 10){
+      return "" + 20 + ":0" + minutes;
+    }else{
+      return "" + 20 + ":" + minutes;
+    }
+  }
+  if (hours == 1){
+    if (minutes < 10){
+      return "" + 19 + ":0" + minutes;
+    }else{
+      return "" + 19 + ":" + minutes;
+    }
+  }
+  if (hours == 0){
+    if (minutes < 10){
+      return "" + 18 + ":0" + minutes;
+    }else{
+      return "" + 18 + ":" + minutes;
+    }
+  }
+  if (minutes < 10){
+    return "" + hours-6 + ":0" + minutes;
+  }else{
+    return "" + hours-6 + ":" + minutes;
+  }
+}
+
+/**
  * gets the current position of user and gives it on to function geolocationUserPositionMap
  */
 function loadCurrentPosition () {
@@ -119,7 +180,7 @@ function userPositionMap (request, position) {
     // for all stops create a marker and popup with name of stop
     for(var i = 0; i < stops.stops.length; i++){
       L.marker(
-        [stops.stops[i].lat,stops.stops[i].lon], {title: stops.stops[i].code})
+        [stops.stops[i].lat,stops.stops[i].lon], {title: stops.stops[i].id})
       .bindPopup("<p>" + stops.stops[i].name + "</p>")
       // when user clicks on marker function markerOnClick is invoked
       .on("click", function(){markerOnClick(this.options.title);})
@@ -131,71 +192,81 @@ function userPositionMap (request, position) {
 /**
  * sends the stopCode to the server for it to request current departures at this stops from API
  * invokes function printCurrentDepartures after timeout
- * @param {string} stopCode - identifying code of stop
+ * @param {string} stopId - id of stop
  */
-function markerOnClick(stopCode){
+function markerOnClick(stopId){
   document.getElementById("stopInfo").innerHTML = "";
-  sendToServer('{"stopCode":' + stopCode + '}', "http://localhost:3000/stopCode");
+  sendToServer('{"stopId":"' + stopId + '"}', "http://localhost:3000/stopId");
   var t = setTimeout(function(){
-    requestJSON("http://localhost:3000/monitoringRef=" + stopCode, printCurrentDepartures, stopCode);
+    requestJSON("http://localhost:3000/stopId=" + stopId, printCurrentDepartures, stopId);
   }, 3000);
 }
 
 /**
  * prints current departures at nearby stops
  * @param {object} request - XMLHttpRequest
- * @param {number} stopCode - stopCode
+ * @param {object} stopId - stopId
  */
-function printCurrentDepartures(request, stopCode){
+function printCurrentDepartures(request, stopId){
   var departures = JSON.parse(request.response);
   document.getElementById("stopInfo").innerHTML += "<h4 class='bg-dark text-white text-center'>"
-    + departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[0].MonitoredVehicleJourney.MonitoredCall.StopPointName + "</h4>";
-  if (departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit.length == 0){
+    + departures.data.references.stops[0].name + "</h4>";
+  // departures consists of a schedule for the busstop for the whole day
+  // compare with current time and only display departures within -5 to +20 minutes of current time
+  // save these in currentDepartures
+  var currentDepartures = [];
+  // 5 minutes before currentTime = - 5*60*1000 (milliseconds)
+  var minCurrentTime = departures.currentTime - 5*60*1000;
+  // 20 minutes after currentTime = + 20*60*1000 (milliseconds)
+  var maxCurrentTime = departures.currentTime + 20*60*1000;
+  for(var i = 0; i < departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes.length; i++){
+    if(departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].departureTime >= minCurrentTime
+    && departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].departureTime <= maxCurrentTime){
+      currentDepartures.push({
+        "stop": departures.data.references.stops[0].name,
+        "stopLat": departures.data.references.stops[0].lat,
+        "stopLon": departures.data.references.stops[0].lon,
+        "departure": departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].departureTime,
+        "tripId": departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].tripId,
+        "destination": departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].tripHeadsign,
+        "routeId": departures.data.entry.stopRouteSchedules[0].routeId
+      });
+    }
+  }
+  console.log(currentDepartures);
+  if (currentDepartures.length == 0){
     document.getElementById("stopInfo").innerHTML += "<div class='container-fluid bg-light'> <p>No current departures</p> </div>";
   }
-  for (var i = 0; i < departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit.length; i++){
-    if(departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[i].MonitoredVehicleJourney.MonitoredCall.hasOwnProperty("ExpectedDepartureTime")){
-      var line = departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[i].MonitoredVehicleJourney.PublishedLineName;
-      var destination = departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[i].MonitoredVehicleJourney.DestinationName;
-      var departure = getTimeFromISO(departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[i].MonitoredVehicleJourney.MonitoredCall.ExpectedDepartureTime);
-      var stop = departures.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit[i].MonitoredVehicleJourney.MonitoredCall.StopPointRef;
+  for (var i = 0; i < currentDepartures.length; i++){
       document.getElementById("stopInfo").innerHTML +=
         "<div class='container-fluid bg-light mb-2'><form action='/busrides/register' method='POST'>"
         + "<div class='row'>"
         + "<div class='col-sm-3'>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<label for='line'><b>Line:</b></label>" + "</div>" + "</div>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='line' name='line' readonly class='form-control-plaintext' value='" + line + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<label for='line'><b>Route:</b></label>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='line' name='line' readonly class='form-control-plaintext' value='" + currentDepartures[i].routeId + "'>" + "</div>" + "</div>"
         + "</div>"
         + "<div class='col-sm-9'>"
         + "<div class='row'>" + "<div class='col-sm'>" + "<label for='destination'><b>Destination:</b></label>" + "</div>" + "</div>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='destination' name='destination' readonly class='form-control-plaintext' value='" + destination + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='destination' name='destination' readonly class='form-control-plaintext' value='" + currentDepartures[i].destination + "'>" + "</div>" + "</div>"
         + "</div>"
         + "</div>"
         + "<div class='row'>"
         + "<div class='col-sm-3'>"
         + "<div class='row'>" + "<div class='col-sm'>" + "<label for='departure'><b>Departure:</b></label>" + "</div>" + "</div>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='departure' name='departure' readonly class='form-control-plaintext' value='" + departure + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='time' name='time' readonly class='form-control-plaintext' value='" + toReadableTime(currentDepartures[i].departure) + "'>" + "</div>" + "</div>"
         + "</div>"
-        + "<div class='col-sm-5'>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<label for=stop'><b>Busstop Id:</b></label>" + "</div>" + "</div>"
-        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='stop' name='stop' readonly class='form-control-plaintext' value='" + stop + "'>" + "</div>" + "</div>"
+        + "<div class='col-sm-0'>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='hidden' id='stop' name='stop' readonly class='form-control-plaintext' value='" + currentDepartures[i].stop + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='hidden' id='tripId' name='tripId' readonly class='form-control-plaintext' value='" + currentDepartures[i].tripId + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='hidden' id='stopLat' name='stopLat' readonly class='form-control-plaintext' value='" + currentDepartures[i].stopLat + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='hidden' id='stopLon' name='stopLon' readonly class='form-control-plaintext' value='" + currentDepartures[i].stopLon + "'>" + "</div>" + "</div>"
+        + "<div class='row'>" + "<div class='col-sm'>" + "<input type='hidden' id='departure' name='departure' readonly class='form-control-plaintext' value='" + currentDepartures[i].departure + "'>" + "</div>" + "</div>"
         + "</div>"
-        + "<div class='col-sm-4 my-auto text-center'>" + "<button type='submit' class='btn btn-secondary'>Register Ride</button>" + "</div>"
+        + "<div class='col-sm-9 my-auto text-center'>" + "<button type='submit' class='btn btn-secondary'>Register Ride</button>" + "</div>"
         + "</div>"
         + "</div>"
         + "</form></div>";
-    }
   }
-}
-
-/**
- * splits the time from the ISO-Date-String and returns it
- * @param {string} iso - ISO-Date-String ex. "2020-08-21T20:29:06.520-04:00"
- * @return {string} - time ex. "20:29"
- */
-function getTimeFromISO(iso){
-  var str = iso.substr(11,5);
-  return str;
 }
 
 //////////////////
