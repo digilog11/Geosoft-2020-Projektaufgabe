@@ -1,11 +1,23 @@
 const mongoose = require('mongoose');
 
 const BusrideSchema = new mongoose.Schema({
-  start: {
+  stop: {
     type: String,
     required: true
   },
-  line: {
+  stopLat: {
+    type: Number,
+    required: true
+  },
+  stopLon: {
+    type: Number,
+    required: true
+  },
+  departureTime: {
+    type: Number,
+    required: true
+  },
+  route: {
     type: String,
     required: true
   },
@@ -13,7 +25,7 @@ const BusrideSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  departureTime: {
+  tripId: {
     type: String,
     required: true
   },
