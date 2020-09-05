@@ -122,12 +122,12 @@ function requestStopsNearby (position){
 
 /**
  * sends an http-get-request to the API for departures at stop
- * and sends it to /monitoringRef=* where it can be used client side
- * @param {object} stopCode - {stopCode}
+ * and sends it to /stopId=* where it can be used client side
+ * @param {object} stopId - {stopId}
  */
-function requestDepartures (stopCode){
-  var monitoringRef = stopCode.stopCode;
-  var url = "http://bustime.mta.info/api/siri/stop-monitoring.json?key=" + key + "&OperatorRef=MTA&MonitoringRef=" + monitoringRef;
+function requestDepartures (stopId){
+  var stopID = stopId.stopId;
+  var url = "http://bustime.mta.info/api/where/schedule-for-stop/" + stopID + ".json?key=" + key;
   console.log(url);
   // start code based on Steve Griffith
   http.get(url, resp =>{
@@ -136,9 +136,9 @@ function requestDepartures (stopCode){
       data += chunk;
     });
     resp.on("end", () =>{
-      let response = JSON.parse(data).Siri;
+      let response = JSON.parse(data);
       console.log(response);
-      app.get("/monitoringRef=" + monitoringRef, (req,res) => {
+      app.get("/stopId=" + stopID, (req,res) => {
         res.json(response);
       });
     });
@@ -156,9 +156,9 @@ app.post("/userPosition", (req,res) => {
   requestStopsNearby(position);
 })
 
-//gives stopCode on to function requestDepartures
-app.post("/stopCode", (req,res) => {
-  var stopCode = req.body;
-  console.log(stopCode);
-  requestDepartures(stopCode);
+//gives stopId on to function requestDepartures
+app.post("/stopId", (req,res) => {
+  var stopId = req.body;
+  console.log(stopId);
+  requestDepartures(stopId);
 })
