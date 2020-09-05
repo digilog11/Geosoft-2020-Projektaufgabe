@@ -5,17 +5,17 @@ const Busride = require('../models/Busride');
 const User = require('../models/User');
 
 router.post('/register', (req, res) => {
-  const { stop, line, destination, departure } = req.body;
+  const { stop, line, destination, departure, tripId, stopLat, stopLon } = req.body;
   const userId = req.user._id;
   // check if this Busride already exists
   // if yes, add user to busride and busride to user
-  Busride.findOne({ start: stop, line: line, destination: destination, departureTime: departure }).then(busride => {
+  Busride.findOne({ stop: stop, route: line, destination: destination, departureTime: departure }).then(busride => {
     if(busride){
       // add user to busride
       var users = busride.users;
       // check if busride already registered under user
       for(var i=0; i<users.length; i++){
-        if(userId === users[i].toString()){
+        if(userId == users[i].toString()){
         }else{
           users.push(userId);
           break;
@@ -55,7 +55,10 @@ router.post('/register', (req, res) => {
       .catch(err => console.log(err));
     }else{
       // create new busride
-      const newBusride = new Busride({ start: stop, line, destination, departureTime: departure, isInfectionRisk: false, users: [userId]});
+      const newBusride = new Busride({
+        stop: stop, route: line, destination: destination, departureTime: departure, tripId: tripId,
+        stopLon : stopLon, stopLat: stopLat, isInfectionRisk: false, users: [userId]
+      });
       newBusride.save().then(busride => {
         // add busride to user
         User.findById(userId, function (err, user){
