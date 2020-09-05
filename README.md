@@ -1,8 +1,25 @@
 # Geosoft-2020-Projektaufgabe
 
-TO-DO:
+Installiere die dependencies @popperjs/core, bcryptjs, bootstrap, connect-flash, ejs, express, express-ejs-layouts, express-session, jquery, leaflet, mongodb, mongoose, passport, passport-local mit npm. Setzte den start script auf app.js
+
+DONE:
 
 Ein Nutzer kann eine aktuelle Abfahrt an einer Haltestelle vor Ort auswählen. Für diese wird dann im Server markiert, dass sie vom Nutzer genommen wurde.
+
+Die Auswahlkarte zeigt die Nutzerposition, sowie die Standorte naheliegender Haltestellen an. Der Nutzer kann dort eine Auswahl über die genommene Fahrt treffen.
+
+Das Interface ist Benutzerfreundlich gestaltet, und gängige Browser und Mobilgeräte können die web-App korrekt ausführen.
+
+Ein Nutzer sollte sich beim anfänglichen Seitenaufruf mit einem Nutzernamen einloggen können. 
+
+Wenn Nutzer auf Haltestellen-Marker klickt werden die nächsten Abfahrten an dieser Haltestelle angezeigt, Problem: falls Nutzer auf eine Haltestelle klickt und danach wieder auf dieselbe aktualisiert der Text nicht
+
+Zusatzfeature: Sicherheit: Passwort min 6 Zeichen, wird mit bcrypt gehasht, bei Seitenaufrufen wird verifiziert, dass nutzer die nötige Authorisation hat diese Seite zu besuchen
+
+Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
+
+
+TO-DO:
 
 Bei einer positiven Diagnose kann ein Arzt alle Fahrten eines Nutzers für einen gewissen Zeitraum als Risiko markieren. Diese Funktion ist für den normalen Nutzer nicht frei zugänglich.
 
@@ -14,12 +31,6 @@ Das Front-End auf der Client-Seite erlaubt dem Nutzer seine Fahrten zu wählen u
 
 Für die Auswahl, und Einsicht der Fahrten gibt es jeweils ein Leaflet Karten-Interface.
 
-Die Auswahlkarte zeigt die Nutzerposition, sowie die Standorte naheliegender Haltestellen an. Der Nutzer kann dort eine Auswahl über die genommene Fahrt treffen.
-
 Die Karte zur Einsicht der Fahrten zeigt dem Nutzer an, von welchem Standort sie welche Fahrten genommen haben. Risiko-Fahrten werden hier besonders hervorgehoben.
 
-Das Interface ist Benutzerfreundlich gestaltet, und gängige Browser und Mobilgeräte können die web-App korrekt ausführen.
-
 Das Back-End auf der Serverseite verwaltet die gespeicherten Fahrten und deren Infektionsrisiko, und stellt das Front-end als html-Seiten zur Verfügung. 
-
-Ein Nutzer sollte sich beim anfänglichen Seitenaufruf mit einem Nutzernamen einloggen können. 
