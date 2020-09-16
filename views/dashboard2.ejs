@@ -25,19 +25,15 @@
 
 <main role="main" class="container-fluid">
   <div class="row mt-5 mb-5">
-    <div class="col-xl-8 m-auto text-center" id="infectionWarning">
-    </div>
     <div class="col-xl-8 m-auto text-center">
-      <p class="mb-0"> Use Geolocation or click on the map to see if there are MTA busstops within 200 m of that position.</p>
-      <p> If yes, click on a marker to see the current departures from that busstop. </p>
-      <div class="container-fluid" id="mapError-Container">
-      </div>
+      <p class="mb-0"> The markers show the busstops where you began your busrides. </p>
+      <p class="mb-0"> If a marker is red it means one of your busrides beginning at that stop is considered an infection risk. </p>
+      <p> Click on a marker to find out more information about the busrides you took from that stop. </p>
+      <div class="container-fluid" id="mapError-Container"></div>
     </div>
   </div>
   <div class="row">
     <div class="col-md-6" id="mapContainer"></div>
-    <div class="col-md-6" id="stopInfo">
-      <%- include ("./partials/messages"); %>
-    </div>
+    <div class="col-md-6" id="busrideInfo"></div>
   </div>
 </main>

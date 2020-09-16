@@ -9,13 +9,22 @@ router.get('/', forwardAuthenticated, (req, res) => res.render('welcome'));
 // Dashboard
 router.get('/dashboard', ensureAuthenticated, (req, res) =>
   res.render('dashboard', {
-    user: req.user
+    user: req.user,
+    layout: "layout_user"
+  })
+);
+
+router.get('/dashboard2', ensureAuthenticated, (req, res) =>
+  res.render('dashboard2', {
+    user: req.user,
+    layout: "layout_user2"
   })
 );
 
 router.get('/dashboard_doctor', ensureAuthenticatedDoctor, (req, res) =>
   res.render('dashboard_doctor', {
-    user: req.user
+    user: req.user,
+    layout: "layout_doctor"
   })
 );
 

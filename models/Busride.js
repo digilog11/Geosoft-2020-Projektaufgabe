@@ -33,6 +33,10 @@ const BusrideSchema = new mongoose.Schema({
     type: Boolean,
     required: true
   },
+  riskUntil: {
+    type: Number,
+    required: false
+  },
   users: {
     type: Array,
     required: false
