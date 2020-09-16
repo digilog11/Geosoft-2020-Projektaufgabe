@@ -1,4 +1,4 @@
-// START based on by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
+// START code based on Brad Traversy, see https://github.com/bradtraversy/node_passport_login
 
 const express = require("express");
 const router = express.Router();

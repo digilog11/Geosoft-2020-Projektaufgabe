@@ -14,13 +14,6 @@ Ein Nutzer sollte sich beim anfänglichen Seitenaufruf mit einem Nutzernamen ein
 
 Wenn Nutzer auf Haltestellen-Marker klickt werden die nächsten Abfahrten an dieser Haltestelle angezeigt, Problem: falls Nutzer auf eine Haltestelle klickt und danach wieder auf dieselbe aktualisiert der Text nicht
 
-Zusatzfeature: Sicherheit: Passwort min 6 Zeichen, wird mit bcrypt gehasht, bei Seitenaufrufen wird verifiziert, dass nutzer die nötige Authorisation hat diese Seite zu besuchen
-
-Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
-
-
-TO-DO:
-
 Bei einer positiven Diagnose kann ein Arzt alle Fahrten eines Nutzers für einen gewissen Zeitraum als Risiko markieren. Diese Funktion ist für den normalen Nutzer nicht frei zugänglich.
 
 Ärzte können auch einzelne Fahrten als Risiko markieren. Dafür steht ihnen eine Karte mit allen Fahrten zur verfügung, welche auf dem Server gespeichert sind.
@@ -34,3 +27,15 @@ Für die Auswahl, und Einsicht der Fahrten gibt es jeweils ein Leaflet Karten-In
 Die Karte zur Einsicht der Fahrten zeigt dem Nutzer an, von welchem Standort sie welche Fahrten genommen haben. Risiko-Fahrten werden hier besonders hervorgehoben.
 
 Das Back-End auf der Serverseite verwaltet die gespeicherten Fahrten und deren Infektionsrisiko, und stellt das Front-end als html-Seiten zur Verfügung. 
+
+Sicherheit: Passwort min 6 Zeichen, wird mit bcrypt gehasht, bei Seitenaufrufen wird verifiziert, dass nutzer die nötige Authorisation hat diese Seite zu besuchen
+
+Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
+
+
+TO-DO:
+
+Q-Unit tests
+
+Docker
+

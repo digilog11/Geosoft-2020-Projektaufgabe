@@ -30,63 +30,39 @@ function requestJSON (url, cFunction, object) {
 }
 
 /**
- * converts from unix time to human-readable time and between timezones
+ * uses xhr to request a JSON from an url and after success invokes a function
+ * @param {string} url - url from which to request the JSON
+ * @param {string} cFunction - name of function to be called after request is ready
+ */
+function requestJSON2 (url, cFunction) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = function(){
+     if(request.readyState == 4 && request.status == "200"){
+       cFunction(this);
+     }
+   };
+   request.open("GET", url, true);
+   request.send();
+}
+
+/**
+ * converts unix milliseconds to a human-readable time string and considers
+ * time zone conversion from testing time zone (CEST) to application time zone (EDT)
  * @param {number} unix - unix time in milliseconds
  * @return {string} - time e.g. "10:04"
  */
 function toReadableTime (unix) {
-  // unix considered to be UTC
-  var time = new Date (unix);
-  // Münster = UTC+2, NYC=UTC-4, so from Münster to NYC -6 hours
-  // not an ideal solution, but works (at least until next time change)
+  // since the Date() function automatically converts to the PCs local time
+  // time zone conversion between testing zone (Germany) and application zone (NYC) is needed
+  // Germany is currently six hours ahead, so those are subracted from unix
+  var unixTimezoneConversion = unix - 6*60*60*1000;
+  var time = new Date (unixTimezoneConversion);
   var hours = time.getHours();
   var minutes = time.getMinutes();
-  if (hours == 5){
-    if (minutes < 10){
-      return "" + 23 + ":0" + minutes;
-    }else{
-      return "" + 23 + ":" + minutes;
-    }
-  }
-  if (hours == 4){
-    if (minutes < 10){
-      return "" + 22 + ":0" + minutes;
-    }else{
-      return "" + 22 + ":" + minutes;
-    }
-  }
-  if (hours == 3){
-    if (minutes < 10){
-      return "" + 21 + ":0" + minutes;
-    }else{
-      return "" + 21 + ":" + minutes;
-    }
-  }
-  if (hours == 2){
-    if (minutes < 10){
-      return "" + 20 + ":0" + minutes;
-    }else{
-      return "" + 20 + ":" + minutes;
-    }
-  }
-  if (hours == 1){
-    if (minutes < 10){
-      return "" + 19 + ":0" + minutes;
-    }else{
-      return "" + 19 + ":" + minutes;
-    }
-  }
-  if (hours == 0){
-    if (minutes < 10){
-      return "" + 18 + ":0" + minutes;
-    }else{
-      return "" + 18 + ":" + minutes;
-    }
-  }
   if (minutes < 10){
-    return "" + hours-6 + ":0" + minutes;
+    return "" + hours + ":0" + minutes;
   }else{
-    return "" + hours-6 + ":" + minutes;
+    return "" + hours + ":" + minutes;
   }
 }
 
@@ -111,7 +87,9 @@ function geolocationUserPositionMap(geolocation){
   var lat = geolocation.coords.latitude;
   var lon = geolocation.coords.longitude;
   var position = '{"latitude":' + lat + ', "longitude":' + lon + '}';
+  // send user position to server
   sendToServer(position, "http://localhost:3000/userPosition");
+  // invoke function userPositionMap after timeout
   var t = setTimeout(function(){requestJSON("http://localhost:3000/nearbyStops/lat=" + lat + "&lon=" + lon,
     userPositionMap, geolocation);}, 2000);
 }
@@ -124,8 +102,10 @@ function geolocationUserPositionMap(geolocation){
 function manualUserPositionMap2(lat, lon){
   document.getElementById("stopInfo").innerHTML = "";
   var position = '{"latitude":' + lat + ', "longitude":' + lon + '}';
+  // send user position to server
   sendToServer(position, "http://localhost:3000/userPosition");
   position = {"coords": {"latitude": lat , "longitude": lon }};
+  // invoke function userPositionMap after timeout
   var t = setTimeout(function(){requestJSON("http://localhost:3000/nearbyStops/lat=" + lat + "&lon=" + lon,
     userPositionMap, position);}, 2000);
 }
@@ -171,8 +151,7 @@ function userPositionMap (request, position) {
   L.marker([point.lat,point.lon], {icon: goldIcon, title: "Your position"}).addTo(map).bindPopup("Your position").openPopup();
 
   if (stops.stops.length == 0){
-    // if no stops nearby display message
-    //document.getElementById("mapError").innerHTML = "No stops within 200 m";
+    // if no stops nearby display error message
     document.getElementById("mapError-Container").innerHTML =
       "<div class='alert alert-danger' role='alert'>No stops within 200 m</div>";
   }else{
@@ -190,25 +169,28 @@ function userPositionMap (request, position) {
 }
 
 /**
- * sends the stopCode to the server for it to request current departures at this stops from API
+ * sends the stopId to the server for it to request current departures at this stop from API,
  * invokes function printCurrentDepartures after timeout
  * @param {string} stopId - id of stop
  */
 function markerOnClick(stopId){
   document.getElementById("stopInfo").innerHTML = "";
+  // send stopId to server
   sendToServer('{"stopId":"' + stopId + '"}', "http://localhost:3000/stopId");
+  // invoke function printCurrentDepartures after timeout
   var t = setTimeout(function(){
     requestJSON("http://localhost:3000/stopId=" + stopId, printCurrentDepartures, stopId);
   }, 3000);
 }
 
 /**
- * prints current departures at nearby stops
+ * prints current departures at stop
  * @param {object} request - XMLHttpRequest
  * @param {object} stopId - stopId
  */
 function printCurrentDepartures(request, stopId){
   var departures = JSON.parse(request.response);
+  // print stop name
   document.getElementById("stopInfo").innerHTML += "<h4 class='bg-dark text-white text-center'>"
     + departures.data.references.stops[0].name + "</h4>";
   // departures consists of a schedule for the busstop for the whole day
@@ -234,9 +216,12 @@ function printCurrentDepartures(request, stopId){
     }
   }
   console.log(currentDepartures);
+  // if no current departures
   if (currentDepartures.length == 0){
     document.getElementById("stopInfo").innerHTML += "<div class='container-fluid bg-light'> <p>No current departures</p> </div>";
   }
+  // else print information about current busrides and form for user to
+  // register these busrides in db if user wants to take that busride
   for (var i = 0; i < currentDepartures.length; i++){
       document.getElementById("stopInfo").innerHTML +=
         "<div class='container-fluid bg-light mb-2'><form action='/busrides/register' method='POST'>"
@@ -269,6 +254,24 @@ function printCurrentDepartures(request, stopId){
   }
 }
 
+/**
+ * print warning message if one of user's busrides is an infection risk
+ * @param {object} request - XMLHttpRequest
+ * @param {object} stopId - stopId
+ */
+function warningMessage(request){
+  var busrides = JSON.parse(request.response);
+  // search through user's busrides until one found with infection risk
+  for (var i=0; i<busrides.length; i++){
+    if(busrides[i].isInfectionRisk){
+      // then print warning message
+      document.getElementById("infectionWarning").innerHTML =
+        "<div class='alert alert-danger alert-dismissible fade show' role='alert'>At least one of your busrides " +
+        "is considered an infection risk. Go to View Busrides for more information.</div>";
+    }
+  }
+}
+
 //////////////////
 // initialize map
 //////////////////
@@ -282,7 +285,7 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 // empty map div in case it has already been initialized
 document.getElementById("mapContainer").innerHTML ="<div id='mapId' style='height: 500px;'></div>";
 
-// create a Leaflet map, center is position of user
+// create a Leaflet map, center is NYC
 var map = L.map('mapId').setView([40.730610,-73.935242],10);
 osm.addTo(map);
 
@@ -292,7 +295,14 @@ map.on("click", function (e){
 })
 
 //////////////////
-// center map on user position
-//////////////////
-
+// pinpoint user position with geolocation
 loadCurrentPosition();
+
+// update busrides in db, set infection risk to false if "expiration date" has passed
+var currentTime = new Date().getTime();
+// time zone conversion
+currentTime = currentTime - 6*60*60*1000;
+sendToServer('{"time":"' + currentTime + '"}', "http://localhost:3000/busrides/checkInfectionRisks");
+
+// check if user's busrides pose an infection risk and display warning message
+requestJSON2("http://localhost:3000/busrides/user", warningMessage);

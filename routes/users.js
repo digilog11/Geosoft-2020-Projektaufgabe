@@ -17,19 +17,15 @@ router.get("/register", (req, res) => res.render("register"));
 router.post('/register', (req, res) => {
   const { name, password, password2 } = req.body;
   let errors = [];
-
   if (!name || !password || !password2) {
     errors.push({ msg: 'Please enter all fields' });
   }
-
   if (password != password2) {
     errors.push({ msg: 'Passwords do not match' });
   }
-
   if (password.length < 6) {
     errors.push({ msg: 'Password must be at least 6 characters' });
   }
-
   if (errors.length > 0) {
     res.render('register', {
       errors,
@@ -86,6 +82,15 @@ router.get('/logout', (req, res) => {
   res.redirect('/users/login');
 });
 
-module.exports = router;
-
 // END code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
+
+router.get('/findAll', (req, res) => {
+  User.find({}, function(err, users) {
+    if(err) console.log(err);
+    else{
+      res.json(users);
+    }
+  });
+})
+
+module.exports = router;

@@ -30,10 +30,12 @@ db.once('open', function() {
   // we're connected!
 });
 
-// START code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
 // EJS
 app.use(expressLayouts);
 app.set("view engine", "ejs");
+app.set("layout", "layout", "layout_user", "layout_user2", "layout_doctor");
+
+// START code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
 
 // Bodyparser
 app.use(express.json());
@@ -61,6 +63,10 @@ app.use(function(req, res, next) {
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
   res.locals.successBusride_msg = req.flash('successBusride_msg');
+  res.locals.errorMarkRisk_msg = req.flash('errorMarkRisk_msg');
+  res.locals.successMarkRisk_msg = req.flash('successMarkRisk_msg');
+  res.locals.errorMarkUserRisk_msg = req.flash('errorMarkUserRisk_msg');
+  res.locals.successMarkUserRisk_msg = req.flash('successMarkUserRisk_msg');
   next();
 });
 
@@ -149,14 +155,14 @@ function requestDepartures (stopId){
   // end code based on Steve Griffith
 }
 
-//gives user position on to function requestStopsNearby
+// gives user position on to function requestStopsNearby
 app.post("/userPosition", (req,res) => {
   var position = req.body;
   console.log(position);
   requestStopsNearby(position);
 })
 
-//gives stopId on to function requestDepartures
+// gives stopId on to function requestDepartures
 app.post("/stopId", (req,res) => {
   var stopId = req.body;
   console.log(stopId);
