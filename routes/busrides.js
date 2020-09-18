@@ -4,32 +4,36 @@ const router = express.Router();
 const Busride = require('../models/Busride');
 const User = require('../models/User');
 
+// when user tries to register a new busride
 router.post('/register', (req, res) => {
   const { stop, line, destination, departure, tripId, stopLat, stopLon } = req.body;
   const userId = req.user._id;
-  // check if this busride already exists
-  // if yes, add user to busride and busride to user
+  // check if this busride already exists in db
   Busride.findOne({ stop: stop, route: line, destination: destination, departureTime: departure }).then(busride => {
     if(busride){
-      // add user to busride
+      // busride exists
       var users = busride.users;
-      // check if busride already registered under user
+      // check if user already in array with users who took this busride
       for(var i=0; i<users.length; i++){
         if(userId == users[i].toString()){
+          // user already in array, do nothing
         }else{
+          // user not in array, add user to it
           users.push(userId);
           break;
         }
       }
       busride.users = users;
       busride.save().then(busride => {
-        // add busride to user
+        // find user in db
         User.findById(userId, function (err, user){
           if(err) console.log(err);
           else{
-            // check if user already registered busride
+            // check if busride already in array with busrides user has taken
             for(var i=0; i<user.busrides.length; i++){
               if(busride._id.equals(user.busrides[i])) {
+                // busride already in array, user registered this busride before, do nothing
+                // display success message
                 req.flash(
                   'successBusride_msg',
                   'Your Busride is now registered'
@@ -38,12 +42,14 @@ router.post('/register', (req, res) => {
                 return;
               }
             }
+            // busride not in array, add busride to array
             var busrides = user.busrides;
             busrides.push(busride._id);
             user.busrides = busrides;
             user.save(err => {
               if(err) console.log(err);
             });
+            // display success message
             req.flash(
               'successBusride_msg',
               'Your Busride is now registered'
@@ -54,22 +60,24 @@ router.post('/register', (req, res) => {
       })
       .catch(err => console.log(err));
     }else{
-      // create new busride
+      // busride not in db, create new busride
       const newBusride = new Busride({
         stop: stop, route: line, destination: destination, departureTime: departure, tripId: tripId,
         stopLon : stopLon, stopLat: stopLat, isInfectionRisk: false, users: [userId]
       });
       newBusride.save().then(busride => {
-        // add busride to user
+        // find user in db
         User.findById(userId, function (err, user){
           if(err) console.log(err);
           else{
+            // add busride to array with all busrides a user has taken
             var busrides = user.busrides;
             busrides.push(busride._id);
             user.busrides = busrides;
             user.save(err => {
               if(err) console.log(err);
             });
+            // display success message
             req.flash(
               'successBusride_msg',
               'Your Busride is now registered'
@@ -83,10 +91,12 @@ router.post('/register', (req, res) => {
   });
 })
 
+// when a doctor marks a single busride as risk
 router.post('/markRisk', (req, res) => {
   const { day, month, year, tripId} = req.body;
   // validate inputs
   if( day<1 || day>31 || month<0 || month>12 || year<2020){
+    // display error message
     req.flash(
       'errorMarkRisk_msg',
       'Please input a correct Date'
@@ -104,6 +114,7 @@ router.post('/markRisk', (req, res) => {
     Busride.updateMany({tripId: tripId}, {"$set": {isInfectionRisk: true, riskUntil: date}}, (err, result) => {
       if(err) console.log(err);
       else{
+        // display success message
         req.flash(
           'successMarkRisk_msg',
           'Busride is now an Infection Risk'
@@ -115,6 +126,7 @@ router.post('/markRisk', (req, res) => {
   }
 })
 
+// when a doctor marks all busrides of a user as infection risk
 router.post('/markUserRisk', (req, res) => {
   const { id, day, month, year } = req.body;
   // convert date to unix
@@ -124,6 +136,7 @@ router.post('/markUserRisk', (req, res) => {
   date = date + 6*60*60*1000;
   // validate inputs
   if( day<1 || day>31 || month<0 || month>12 || year<2020){
+    // display error message
     req.flash(
       'errorMarkUserRisk_msg',
       'Please input a correct date'
@@ -134,7 +147,6 @@ router.post('/markUserRisk', (req, res) => {
     User.findById(id, function (err, user){
       if(err) console.log(err);
       else{
-        console.log(user);
         // find all busrides of user
         for (var i=0; i<user.busrides.length; i++){
           Busride.findById(user.busrides[i], function (err, busride){
@@ -147,6 +159,7 @@ router.post('/markUserRisk', (req, res) => {
             }
           });
         }
+        // display success message
         req.flash(
           'successMarkUserRisk_msg',
           'All busrides of user now an Infection Risk'
@@ -157,6 +170,7 @@ router.post('/markUserRisk', (req, res) => {
   }
 })
 
+// check all busrides if their "expiration date" has passed
 router.post('/checkInfectionRisks', (req, res) => {
   const {time} = req.body;
   // find all busrides in db
@@ -164,7 +178,7 @@ router.post('/checkInfectionRisks', (req, res) => {
     if(err) console.log(err);
     else{
       // busrides is an array, but we need a single response object
-      // so for each busride in the array search for that busride
+      // so for each busride in the array search for that busride in db
       for(var i=0; i<busrides.length;i++){
         Busride.findById(busrides[i]._id, function (err, busride){
           if(err) console.log(err);
@@ -185,6 +199,7 @@ router.post('/checkInfectionRisks', (req, res) => {
   });
 })
 
+// get all busrides of a user
 router.get('/user', (req, res) => {
   const userId = req.user._id;
   var busrides = [];
@@ -201,13 +216,13 @@ router.get('/user', (req, res) => {
           console.log(err);
         }
       }
-      console.log(busrides);
       // send array busrides as response
       res.json(busrides);
     }
   });
 })
 
+// get all busrides in db
 router.get('/findAll', (req, res) => {
   // find all busrides in db
   Busride.find({}, function(err, busrides) {
