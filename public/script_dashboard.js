@@ -249,6 +249,3 @@ checkBusridesInfectionRisk();
 
 // check if user's busrides pose an infection risk and invoke function warningMessage
 requestJSON2("http://localhost:3000/busrides/user", warningMessage);
-
-// pinpoint user position with geolocation
-loadCurrentPosition();
