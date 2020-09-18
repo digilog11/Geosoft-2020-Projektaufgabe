@@ -1,72 +1,6 @@
 "use_strict";
 
 /**
- * sends object to destination via POST-Request
- * @param {object} object - JSON object
- * @param {string} destination - destination address
- */
-function sendToServer(object, destination){
-  var xhr = new window.XMLHttpRequest();
-  xhr.open("POST", destination, true);
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(object);
-}
-
-/**
- * uses xhr to request a JSON from an url and after success invokes a function
- * @param {string} url - url from which to request the JSON
- * @param {string} cFunction - name of function to be called after request is ready
- * @param {object} object - parameter of cFunction
- */
-function requestJSON (url, cFunction, object) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function(){
-     if(request.readyState == 4 && request.status == "200"){
-       cFunction(this, object);
-     }
-   };
-   request.open("GET", url, true);
-   request.send();
-}
-
-/**
- * uses xhr to request a JSON from an url and after success invokes a function
- * @param {string} url - url from which to request the JSON
- * @param {string} cFunction - name of function to be called after request is ready
- */
-function requestJSON2 (url, cFunction) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function(){
-     if(request.readyState == 4 && request.status == "200"){
-       cFunction(this);
-     }
-   };
-   request.open("GET", url, true);
-   request.send();
-}
-
-/**
- * converts unix milliseconds to a human-readable time string and considers
- * time zone conversion from testing time zone (CEST) to application time zone (EDT)
- * @param {number} unix - unix time in milliseconds
- * @return {string} - time e.g. "10:04"
- */
-function toReadableTime (unix) {
-  // since the Date() function automatically converts to the PCs local time
-  // time zone conversion between testing zone (Germany) and application zone (NYC) is needed
-  // Germany is currently six hours ahead, so those are subracted from unix
-  var unixTimezoneConversion = unix - 6*60*60*1000;
-  var time = new Date (unixTimezoneConversion);
-  var hours = time.getHours();
-  var minutes = time.getMinutes();
-  if (minutes < 10){
-    return "" + hours + ":0" + minutes;
-  }else{
-    return "" + hours + ":" + minutes;
-  }
-}
-
-/**
  * gets the current position of user and gives it on to function geolocationUserPositionMap
  */
 function loadCurrentPosition () {
@@ -79,11 +13,12 @@ function loadCurrentPosition () {
 
 /**
  * sends user position to server to request stops near user position from the API
- * after a timeout (to make sure request from API has been received) requests the server
+ * after a timeout (to make sure response from API has been received) requests the server
  * for the API response and gives it on to and invokes function userPositionMap
  * @param {object} geolocation - calculated by loadCurrentPosition function
  */
-function geolocationUserPositionMap(geolocation){
+function geolocationUserPositionMap (geolocation){
+  document.getElementById("stopInfo").innerHTML = "";
   var lat = geolocation.coords.latitude;
   var lon = geolocation.coords.longitude;
   var position = '{"latitude":' + lat + ', "longitude":' + lon + '}';
@@ -96,10 +31,10 @@ function geolocationUserPositionMap(geolocation){
 
 /**
  * sends position of point user clicked on to server to request stops near this position from the API
- * after a timeout (to make sure request from API has been received) requests the server
+ * after a timeout (to make sure response from API has been received) requests the server
  * for the API response and gives it on to and invokes function userPositionMap
  */
-function manualUserPositionMap2(lat, lon){
+function manualUserPositionMap2 (lat, lon){
   document.getElementById("stopInfo").innerHTML = "";
   var position = '{"latitude":' + lat + ', "longitude":' + lon + '}';
   // send user position to server
@@ -139,6 +74,7 @@ function userPositionMap (request, position) {
 
   // marker with user position is gold
   var goldIcon = new L.Icon({
+    // Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
     iconUrl: 'public/marker-icon-gold.png',
     shadowUrl: 'public/marker-shadow.png',
     iconSize: [25, 41],
@@ -150,17 +86,17 @@ function userPositionMap (request, position) {
   // add a marker at the position of user
   L.marker([point.lat,point.lon], {icon: goldIcon, title: "Your position"}).addTo(map).bindPopup("Your position").openPopup();
 
-  if (stops.stops.length == 0){
+  if (stops.data.stops.length == 0){
     // if no stops nearby display error message
     document.getElementById("mapError-Container").innerHTML =
-      "<div class='alert alert-danger' role='alert'>No stops within 200 m</div>";
+      "<div class='alert alert-danger alert-dismissible fade show' role='alert'>No stops within 200 m</div>";
   }else{
     document.getElementById("mapError-Container").innerHTML = "";
     // for all stops create a marker and popup with name of stop
-    for(var i = 0; i < stops.stops.length; i++){
+    for(var i = 0; i < stops.data.stops.length; i++){
       L.marker(
-        [stops.stops[i].lat,stops.stops[i].lon], {title: stops.stops[i].id})
-      .bindPopup("<p>" + stops.stops[i].name + "</p>")
+        [stops.data.stops[i].lat, stops.data.stops[i].lon], {title: stops.data.stops[i].id})
+      .bindPopup("<p>" + stops.data.stops[i].name + "</p>")
       // when user clicks on marker function markerOnClick is invoked
       .on("click", function(){markerOnClick(this.options.title);})
       .addTo(map);
@@ -173,7 +109,7 @@ function userPositionMap (request, position) {
  * invokes function printCurrentDepartures after timeout
  * @param {string} stopId - id of stop
  */
-function markerOnClick(stopId){
+function markerOnClick (stopId){
   document.getElementById("stopInfo").innerHTML = "";
   // send stopId to server
   sendToServer('{"stopId":"' + stopId + '"}', "http://localhost:3000/stopId");
@@ -188,12 +124,12 @@ function markerOnClick(stopId){
  * @param {object} request - XMLHttpRequest
  * @param {object} stopId - stopId
  */
-function printCurrentDepartures(request, stopId){
+function printCurrentDepartures (request, stopId){
   var departures = JSON.parse(request.response);
   // print stop name
   document.getElementById("stopInfo").innerHTML += "<h4 class='bg-dark text-white text-center'>"
     + departures.data.references.stops[0].name + "</h4>";
-  // departures consists of a schedule for the busstop for the whole day
+  // departures consist of a schedule for the busstop for the whole day
   // compare with current time and only display departures within -5 to +20 minutes of current time
   // save these in currentDepartures
   var currentDepartures = [];
@@ -201,6 +137,7 @@ function printCurrentDepartures(request, stopId){
   var minCurrentTime = departures.currentTime - 5*60*1000;
   // 20 minutes after currentTime = + 20*60*1000 (milliseconds)
   var maxCurrentTime = departures.currentTime + 20*60*1000;
+  // search for departures within that time frame
   for(var i = 0; i < departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes.length; i++){
     if(departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].departureTime >= minCurrentTime
     && departures.data.entry.stopRouteSchedules[0].stopRouteDirectionSchedules[0].scheduleStopTimes[i].departureTime <= maxCurrentTime){
@@ -215,8 +152,7 @@ function printCurrentDepartures(request, stopId){
       });
     }
   }
-  console.log(currentDepartures);
-  // if no current departures
+  // if no current departures print message
   if (currentDepartures.length == 0){
     document.getElementById("stopInfo").innerHTML += "<div class='container-fluid bg-light'> <p>No current departures</p> </div>";
   }
@@ -259,7 +195,7 @@ function printCurrentDepartures(request, stopId){
  * @param {object} request - XMLHttpRequest
  * @param {object} stopId - stopId
  */
-function warningMessage(request){
+function warningMessage (request){
   var busrides = JSON.parse(request.response);
   // search through user's busrides until one found with infection risk
   for (var i=0; i<busrides.length; i++){
@@ -272,37 +208,47 @@ function warningMessage(request){
   }
 }
 
+/**
+ * creates Leaflet map, sets view on New York City
+ */
+function initializeMap (){
+  // create baselayer
+  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,
+    attribution: 'Leaflet, OpenStreetMap Contributors',
+  });
+
+  // empty map div in case it has already been initialized
+  document.getElementById("mapContainer").innerHTML ="<div id='mapId' style='height: 500px;'></div>";
+
+  // create a Leaflet map, center is NYC
+  var map = L.map('mapId').setView([40.730610,-73.935242],10);
+  osm.addTo(map);
+
+  // when user clicks somewhere on map that position is given on to function manualUserPositionMap2
+  map.on("click", function (e){
+    manualUserPositionMap2(e.latlng.lat, e.latlng.lng);
+  })
+}
+
+/**
+ *  updates busrides in db, sets infection risk to false if "expiration date" has passed
+ */
+function checkBusridesInfectionRisk (){
+  var currentTime = new Date().getTime();
+  // time zone conversion
+  currentTime = currentTime - 6*60*60*1000;
+  sendToServer('{"time":"' + currentTime + '"}', "http://localhost:3000/busrides/checkInfectionRisks");
+}
+
 //////////////////
-// initialize map
-//////////////////
 
-// create baselayer
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:18,
-  attribution: 'Leaflet, OpenStreetMap Contributors',
-});
+initializeMap();
 
-// empty map div in case it has already been initialized
-document.getElementById("mapContainer").innerHTML ="<div id='mapId' style='height: 500px;'></div>";
+checkBusridesInfectionRisk();
 
-// create a Leaflet map, center is NYC
-var map = L.map('mapId').setView([40.730610,-73.935242],10);
-osm.addTo(map);
+// check if user's busrides pose an infection risk and invoke function warningMessage
+requestJSON2("http://localhost:3000/busrides/user", warningMessage);
 
-// when user clicks somewhere on map that position is given on to function manualUserPositionMap2
-map.on("click", function (e){
-  manualUserPositionMap2(e.latlng.lat, e.latlng.lng);
-})
-
-//////////////////
 // pinpoint user position with geolocation
 loadCurrentPosition();
-
-// update busrides in db, set infection risk to false if "expiration date" has passed
-var currentTime = new Date().getTime();
-// time zone conversion
-currentTime = currentTime - 6*60*60*1000;
-sendToServer('{"time":"' + currentTime + '"}', "http://localhost:3000/busrides/checkInfectionRisks");
-
-// check if user's busrides pose an infection risk and display warning message
-requestJSON2("http://localhost:3000/busrides/user", warningMessage);
