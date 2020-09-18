@@ -1,12 +1,14 @@
 // START code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
+
 const express = require('express');
 const router = express.Router();
+var path = require('path');
 const { ensureAuthenticated, forwardAuthenticated, ensureAuthenticatedDoctor } = require('../config/auth');
 
 // Welcome Page
 router.get('/', forwardAuthenticated, (req, res) => res.render('welcome'));
 
-// Dashboard
+// Dashboard User
 router.get('/dashboard', ensureAuthenticated, (req, res) =>
   res.render('dashboard', {
     user: req.user,
@@ -14,6 +16,9 @@ router.get('/dashboard', ensureAuthenticated, (req, res) =>
   })
 );
 
+// END code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
+
+// Dashboard 2 User
 router.get('/dashboard2', ensureAuthenticated, (req, res) =>
   res.render('dashboard2', {
     user: req.user,
@@ -21,6 +26,7 @@ router.get('/dashboard2', ensureAuthenticated, (req, res) =>
   })
 );
 
+// Dashboard Doctor
 router.get('/dashboard_doctor', ensureAuthenticatedDoctor, (req, res) =>
   res.render('dashboard_doctor', {
     user: req.user,
@@ -28,5 +34,9 @@ router.get('/dashboard_doctor', ensureAuthenticatedDoctor, (req, res) =>
   })
 );
 
+// QUnit Test
+router.get('/test', (req, res) =>
+  res.sendFile(path.join(__dirname, '../test/test.html'))
+);
+
 module.exports = router;
-// END code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login
