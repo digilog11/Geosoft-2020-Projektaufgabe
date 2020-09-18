@@ -1,37 +1,11 @@
-/**
- * uses xhr to request a JSON from an url and after success invokes a function
- * @param {string} url - url from which to request the JSON
- * @param {string} cFunction - name of function to be called after request is ready
- */
-function requestJSON2 (url, cFunction) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function(){
-     if(request.readyState == 4 && request.status == "200"){
-       cFunction(this);
-     }
-   };
-   request.open("GET", url, true);
-   request.send();
-}
+"use_strict";
 
 /**
- * uses xhr to request a JSON from an url and after success invokes a function
- * @param {string} url - url from which to request the JSON
- * @param {string} cFunction - name of function to be called after request is ready
- * @param {object} object - parameter of cFunction
+ * creates markers for all of the user's busrides, those with infection risk in red, otherwise green
+ * if user clicks on marker, invoke function markerOnClick
+ * @param {object} request - XMLHttpRequest
  */
-function requestJSON (url, cFunction, object) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function(){
-     if(request.readyState == 4 && request.status == "200"){
-       cFunction(this, object);
-     }
-   };
-   request.open("GET", url, true);
-   request.send();
-}
-
-function updateMap(request){
+function updateMap (request){
   var busrides = JSON.parse(request.response);
 
   // create baselayer
@@ -49,6 +23,7 @@ function updateMap(request){
 
   // busrides with infection risk have red marker
   var redIcon = new L.Icon({
+    // Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
     iconUrl: 'public/marker-icon-red.png',
     shadowUrl: 'public/marker-shadow.png',
     iconSize: [25, 41],
@@ -59,6 +34,7 @@ function updateMap(request){
 
   // busrides without infection risk have green marker
   var greenIcon = new L.Icon({
+    // Leaflet different color markers by: https://github.com/pointhi/leaflet-color-markers
     iconUrl: 'public/marker-icon-green.png',
     shadowUrl: 'public/marker-shadow.png',
     iconSize: [25, 41],
@@ -67,6 +43,7 @@ function updateMap(request){
     shadowSize: [41, 41]
   });
 
+  // create markers for all busrides
   for(var i=0; i < busrides.length; i++){
     if(busrides[i].isInfectionRisk){
       L.marker([busrides[i].stopLat, busrides[i].stopLon], {icon: redIcon, title: busrides[i].stop})
@@ -84,16 +61,29 @@ function updateMap(request){
   };
 }
 
-function markerOnClick(stop){
+/**
+ * invokes function printBusrideInfo
+ * @param {string} stop - name of busstop
+ */
+function markerOnClick (stop){
   document.getElementById("busrideInfo").innerHTML = "";
+  // request all busrides of user from database and give those on as a JSON
+  // to function printBusrideInfo
   requestJSON("http://localhost:3000/busrides/user", printBusrideInfo, stop);
 }
 
-function printBusrideInfo(request, stop){
+/**
+ * displays information about the busrides user took at this busstop
+ * @param {object} request - XMLHttpRequest
+ * @param {string} stop - name of busstop
+ */
+function printBusrideInfo (request, stop){
   var busrides = JSON.parse(request.response);
+  // print busstop name
   document.getElementById("busrideInfo").innerHTML += "<h4 class='bg-dark text-white text-center'>"
     + stop + "</h4>";
-  console.log(busrides);
+  // search for the busrides the user took at this busstop
+  // display information about these busrides
   for(var i=0; i < busrides.length; i++){
     if(stop == busrides[i].stop){
       if(busrides[i].isInfectionRisk){
@@ -112,7 +102,7 @@ function printBusrideInfo(request, stop){
           + "<div class='row'>"
           + "<div class='col-sm-4'>"
           + "<div class='row'>" + "<div class='col-sm'>" + "<label for='departure'><b>Departure:</b></label>" + "</div>" + "</div>"
-          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='time' name='time' readonly class='form-control-plaintext' value='" + toreadableDate(busrides[i].departureTime) + "'>" + "</div>" + "</div>"
+          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='time' name='time' readonly class='form-control-plaintext' value='" + toReadableDate(busrides[i].departureTime) + "'>" + "</div>" + "</div>"
           + "</div>"
           + "<div class='col-sm-4'>"
           + "<div class='row'>" + "<div class='col-sm'>" + "<label for='risk'><b>Infection Risk:</b></label>" + "</div>" + "</div>"
@@ -120,7 +110,7 @@ function printBusrideInfo(request, stop){
           + "</div>"
           + "<div class='col-sm-4'>"
           + "<div class='row'>" + "<div class='col-sm'>" + "<label for='riskUntil'><b>Risk until:</b></label>" + "</div>" + "</div>"
-          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='riskUntil' name='riskUntil' readonly class='form-control-plaintext' value='" + toreadableDate(busrides[i].riskUntil) + "'>" + "</div>" + "</div>"
+          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='riskUntil' name='riskUntil' readonly class='form-control-plaintext' value='" + toReadableDate(busrides[i].riskUntil) + "'>" + "</div>" + "</div>"
           + "</div>"
           + "</div>"
           + "</form></div>";
@@ -140,7 +130,7 @@ function printBusrideInfo(request, stop){
           + "<div class='row'>"
           + "<div class='col-sm-4'>"
           + "<div class='row'>" + "<div class='col-sm'>" + "<label for='departure'><b>Departure:</b></label>" + "</div>" + "</div>"
-          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='time' name='time' readonly class='form-control-plaintext' value='" + toreadableDate(busrides[i].departureTime) + "'>" + "</div>" + "</div>"
+          + "<div class='row'>" + "<div class='col-sm'>" + "<input type='text' id='time' name='time' readonly class='form-control-plaintext' value='" + toReadableDate(busrides[i].departureTime) + "'>" + "</div>" + "</div>"
           + "</div>"
           + "<div class='col-sm-4'>"
           + "<div class='row'>" + "<div class='col-sm'>" + "<label for='risk'><b>Infection Risk:</b></label>" + "</div>" + "</div>"
@@ -153,32 +143,28 @@ function printBusrideInfo(request, stop){
   }
 }
 
-function toreadableDate(unix){
-  // for more info on why time conversion go to script_dashboard toRedableTime()
-  var unixTimezoneConversion = unix - 6*60*60*1000;
-  var date = new Date(unixTimezoneConversion);
-  var string = date.toString();
-  return string.substr(0,21);
+/**
+ * creates Leaflet map, sets view on New York City
+ */
+function initializeMap (){
+  // create baselayer
+  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,
+    attribution: 'Leaflet, OpenStreetMap Contributors',
+  });
+
+  // empty map div in case it has already been initialized
+  document.getElementById("mapContainer").innerHTML ="<div id='mapId' style='height: 500px;'></div>";
+
+  // create a Leaflet map, center is NYC
+  var map = L.map('mapId').setView([40.730610,-73.935242],10);
+  osm.addTo(map);
+
 }
 
 //////////////////
-// initialize map
-//////////////////
 
-// create baselayer
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:18,
-  attribution: 'Leaflet, OpenStreetMap Contributors',
-});
+initializeMap();
 
-// empty map div in case it has already been initialized
-document.getElementById("mapContainer").innerHTML ="<div id='mapId' style='height: 500px;'></div>";
-
-// create a Leaflet map, center is NYC
-var map = L.map('mapId').setView([40.730610,-73.935242],10);
-osm.addTo(map);
-
-//////////////////
-
-// request user's busrides from Server
+// request user's busrides from database and invoke function updateMap
 requestJSON2("http://localhost:3000/busrides/user", updateMap);
