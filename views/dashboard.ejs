@@ -28,9 +28,13 @@
     <div class="col-xl-8 m-auto text-center" id="infectionWarning">
     </div>
     <div class="col-xl-8 m-auto text-center">
-      <p class="mb-0"> Use Geolocation or click on the map to see if there are MTA busstops within 200 m of that position.</p>
+      <p class="mb-0"> Click on the button to see if there are MTA busstops within 200 m of your position.</p>
+      <p class="mb-0"> Or click somewhere on the map to see if there are MTA busstops within 200 m of that position.</p>
       <p> If yes, click on a marker to see the current departures from that busstop. </p>
-      <div class="container-fluid" id="mapError-Container">
+      <div class="container-fluid">
+        <button onclick="loadCurrentPosition()" class="btn btn-secondary">Get Current Position</button>
+      </div>
+      <div class="mt-3 container-fluid" id="mapError-Container">
       </div>
     </div>
   </div>
