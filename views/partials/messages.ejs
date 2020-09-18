@@ -28,7 +28,11 @@
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
-<% } %> <% if(errorMarkRisk_msg != ''){ %>
+<% } %>
+
+<%# END code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login %>
+
+<% if(errorMarkRisk_msg != ''){ %>
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
   <%= errorMarkRisk_msg %>
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -50,5 +54,3 @@
   </button>
 </div>
 <% } %>
-
-<%# END code by Brad Traversy, see https://github.com/bradtraversy/node_passport_login %>
