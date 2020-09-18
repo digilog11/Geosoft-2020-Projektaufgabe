@@ -6,21 +6,25 @@ const bcrypt = require('bcryptjs');
 // Load model
 const User = require('../models/User');
 
+// User login
 module.exports = function(passport) {
   passport.use(
     new LocalStrategy({ usernameField: 'name' }, (name, password, done) => {
-      // Match user
+      // find user in database with the same name as login form name
       User.findOne({
         name: name
       }).then(user => {
+        // if no user found display error message
         if (!user) {
           return done(null, false, { message: 'No user with that name registered' });
         }
-        // Match password
+        // if user found compare login form password with password in database
         bcrypt.compare(password, user.password, (err, isMatch) => {
           if (err) throw err;
+          // if password matched login successful
           if (isMatch) {
             return done(null, user);
+          // if not display error message
           } else {
             return done(null, false, { message: 'Password incorrect' });
           }
