@@ -1,3 +1,5 @@
+"use_strict";
+
 //////////////////
 // API
 // used is the MTA Bus Time API
@@ -23,7 +25,7 @@ const app = express();
 require("./config/passport")(passport);
 
 // DB
-mongoose.connect('mongodb://localhost/login', {useUnifiedTopology: true, useNewUrlParser: true});
+mongoose.connect('mongodb://localhost/NYCcovidBusApp', {useUnifiedTopology: true, useNewUrlParser: true});
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -80,6 +82,8 @@ app.use("/busrides", require("./routes/busrides"));
 
 // Make all Files stored in Folder "public" accessible over localhost:3000/public
 app.use("/public", express.static(__dirname + "/public"));
+// Make all Files stored in Folder "test" accessible over localhost:3000/test
+app.use("/test", express.static(__dirname + "/test"));
 // Make leaflet library available over localhost:3000/leaflet
 app.use("/leaflet", express.static(__dirname + "/node_modules/leaflet/dist"));
 // Make jQuery available over localhost:3000/jquery
@@ -90,22 +94,24 @@ app.use("/popper", express.static(__dirname + "/node_modules/@popperjs/core/dist
 app.use("/bootstrap", express.static(__dirname + "/node_modules/bootstrap/dist/js"));
 // Make Bootstrap's css available over localhost:3000/css
 app.use("/css", express.static(__dirname + "/node_modules/bootstrap/dist/css"));
+// Make qunit library available over localhost:3000/qunit
+app.use("/qunit", express.static(__dirname + "/node_modules/qunit/qunit"));
 
 // Port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, console.log("Server started on port " + PORT));
 
 // API calls
+
 /**
-  * sends an http-get-request to the API for stops near to position
-  * and sends it to /nearbyStops/* where it can be used client side
+  * sends an http-get-request to the API for stops within 200 m of position
+  * and sends response as JSON to /nearbyStops/lat=?&lon=? where it can be used client side
   * @param {object} position - position {lat, lon}
   */
 function requestStopsNearby (position){
   var lat = position.latitude;
   var lon = position.longitude;
   var url = "http://bustime.mta.info/api/where/stops-for-location.json?lat=" + lat + "&lon=" + lon + "&radius=200&key=" + key + "";
-  console.log(url);
   // start code based on Steve Griffith
   http.get(url, resp =>{
     let data = "";
@@ -113,8 +119,7 @@ function requestStopsNearby (position){
       data += chunk;
     });
     resp.on("end", () =>{
-      let response = JSON.parse(data).data;
-      console.log(response);
+      let response = JSON.parse(data);
       app.get("/nearbyStops/lat=" + lat + "&lon=" + lon, (req,res) => {
         res.json(response);
       });
@@ -128,13 +133,12 @@ function requestStopsNearby (position){
 
 /**
  * sends an http-get-request to the API for departures at stop
- * and sends it to /stopId=* where it can be used client side
+ * and sends response as JSON to /stopId=? where it can be used client side
  * @param {object} stopId - {stopId}
  */
 function requestDepartures (stopId){
   var stopID = stopId.stopId;
   var url = "http://bustime.mta.info/api/where/schedule-for-stop/" + stopID + ".json?key=" + key;
-  console.log(url);
   // start code based on Steve Griffith
   http.get(url, resp =>{
     let data = "";
@@ -143,7 +147,6 @@ function requestDepartures (stopId){
     });
     resp.on("end", () =>{
       let response = JSON.parse(data);
-      console.log(response);
       app.get("/stopId=" + stopID, (req,res) => {
         res.json(response);
       });
@@ -158,13 +161,11 @@ function requestDepartures (stopId){
 // gives user position on to function requestStopsNearby
 app.post("/userPosition", (req,res) => {
   var position = req.body;
-  console.log(position);
   requestStopsNearby(position);
 })
 
 // gives stopId on to function requestDepartures
 app.post("/stopId", (req,res) => {
   var stopId = req.body;
-  console.log(stopId);
   requestDepartures(stopId);
 })
